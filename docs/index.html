@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Traefik Route API — HTTP 路由管理 API 文件，支援 YAML 與 TOML。">
+    <title>Traefik Route API · Swagger</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.0/swagger-ui.css">
+    <style>
+      body { margin: 0; background: #fafafa; color: #172b3a; font-family: system-ui, sans-serif; }
+      header { padding: 24px max(24px, calc((100% - 1460px) / 2)); background: #122635; color: #fff; }
+      header h1 { font-size: 24px; margin: 0 0 12px; }
+      header p { line-height: 1.6; margin: 8px 0; }
+      header a { color: #8cdbff; margin-right: 20px; }
+      .swagger-ui .info { margin: 28px 0; }
+      .swagger-ui .auth-wrapper { display: none; }
+      #load-status { padding: 20px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Traefik Route API</h1>
+      <p>HTTP 路由管理 · YAML / TOML · 單一 API 入口</p>
+      <p>此頁提供 API 規格與範例。實際測試請使用執行中服務的 <code>/docs</code>，例如 <code>http://127.0.0.1:8000/docs</code>。</p>
+      <nav aria-label="文件連結">
+        <a href="https://github.com/ObsidianDrake/Traefik-API">GitHub repository</a>
+        <a href="./openapi.json" download="traefik-route-api-openapi.json">下載 OpenAPI JSON</a>
+      </nav>
+    </header>
+    <p id="load-status" role="status">載入 API 文件中…</p>
+    <noscript>請啟用 JavaScript 以瀏覽 Swagger UI，或直接下載上方 OpenAPI JSON。</noscript>
+    <main id="swagger-ui"></main>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.32.0/swagger-ui-bundle.js"></script>
+    <script>
+      async function renderDocs() {
+        const status = document.getElementById("load-status");
+        try {
+          if (typeof SwaggerUIBundle === "undefined") throw new Error("Swagger UI 載入失敗");
+          const response = await fetch("./openapi.json");
+          if (!response.ok) throw new Error("OpenAPI 文件載入失敗");
+          const spec = await response.json();
+          SwaggerUIBundle({
+            spec,
+            dom_id: "#swagger-ui",
+            deepLinking: true,
+            filter: true,
+            docExpansion: "list",
+            defaultModelsExpandDepth: 1,
+            supportedSubmitMethods: [],
+            persistAuthorization: false,
+            validatorUrl: null,
+            presets: [SwaggerUIBundle.presets.apis],
+            onComplete: () => { status.hidden = true; }
+          });
+        } catch (error) {
+          status.textContent = "無法載入 Swagger UI。請重新整理，或使用上方連結下載 OpenAPI JSON。";
+        }
+      }
+      renderDocs();
+    </script>
+  </body>
+</html>

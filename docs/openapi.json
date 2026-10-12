@@ -1,0 +1,408 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Traefik Route API",
+    "version": "0.1.0",
+    "description": "以名稱管理 Traefik HTTP 路由，支援 YAML 與 TOML。\n\n此頁為靜態參考文件；請至本機服務的 `/docs` 測試 API。\n\n除 `/healthz` 外，所有端點皆需 `Authorization: Bearer <API_TOKEN>`。"
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "summary": "檢查 API 存活",
+        "operationId": "health_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "description": "只檢查本服務，不探測 Traefik 或後端服務。",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/v1/routes/preview": {
+      "post": {
+        "summary": "預覽路由設定",
+        "operationId": "preview_v1_routes_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Route"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API token 缺少或不正確"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "description": "驗證輸入與 allowlist，回傳 format 及 yaml 或 toml 內容；不写入檔案、不探測 upstream，也不判定目錄衝突。",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/v1/routes": {
+      "get": {
+        "summary": "列出 Traefik HTTP 路由",
+        "operationId": "list_routes_v1_routes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "502": {
+            "description": "Traefik API unavailable or invalid response"
+          },
+          "504": {
+            "description": "Traefik API timeout"
+          },
+          "401": {
+            "description": "API token 缺少或不正確"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "description": "即時讀取所有分頁，保留原始狀態並附 managed 與 managedName。包含人工路由；不是僅列出本專案建立的檔案。",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/v1/routes/{name}": {
+      "get": {
+        "summary": "取得路由設定",
+        "operationId": "get_route_v1_routes__name__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Name"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API token 缺少或不正確"
+          },
+          "404": {
+            "description": "找不到受管理的路由"
+          }
+        },
+        "description": "讀取本專案管理的路由設定；找不到時回傳 404。",
+        "tags": [
+          "Routes"
+        ]
+      },
+      "put": {
+        "summary": "建立或接管路由",
+        "operationId": "put_route_v1_routes__name__put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Name"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Route"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API token 缺少或不正確"
+          },
+          "201": {
+            "description": "新路由設定已寫入"
+          },
+          "409": {
+            "description": "路由或檔案衝突，或原服務仍有回應"
+          },
+          "503": {
+            "description": "無法判定原服務狀態，或設定檔不可用"
+          }
+        },
+        "description": "新建回傳 201；既有路由的所有 upstream 重試後仍無回應才允許更新（200）。任何 HTTP 回應均拒絕接管（409）；DNS、TLS 等無法判定的錯誤回傳 503。格式由 TRAEFIK_CONFIG_FORMAT 決定，新檔名為 {name}.yml 或 {name}.toml。",
+        "tags": [
+          "Routes"
+        ]
+      },
+      "delete": {
+        "summary": "刪除路由",
+        "operationId": "delete_route_v1_routes__name__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Name"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "API token 缺少或不正確"
+          },
+          "404": {
+            "description": "找不到受管理的路由"
+          }
+        },
+        "description": "刪除本專案管理的路由檔案，成功回傳 204。此明確移除操作不探測 upstream。",
+        "tags": [
+          "Routes"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Route": {
+        "properties": {
+          "host": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Host"
+          },
+          "pathPrefix": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pathprefix"
+          },
+          "stripPrefix": {
+            "type": "boolean",
+            "title": "Stripprefix",
+            "default": false
+          },
+          "upstreams": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Upstreams"
+          },
+          "probePath": {
+            "type": "string",
+            "title": "Probepath",
+            "default": "/"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "upstreams"
+        ],
+        "title": "Route",
+        "examples": [
+          {
+            "pathPrefix": "/my-app",
+            "stripPrefix": true,
+            "upstreams": [
+              "http://127.0.0.1:3000"
+            ],
+            "probePath": "/"
+          }
+        ]
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8000",
+      "description": "本機 API（預設）"
+    }
+  ]
+}

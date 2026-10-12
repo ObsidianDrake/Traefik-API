@@ -4,6 +4,23 @@
 
 服務只負責路由設定；Web Service、DNS、TLS 憑證由部署流程處理。API 回傳 `written` 代表檔案已落盤，不保證 Traefik 已載入或網站已可連線。
 
+## 線上 Swagger 文件
+
+GitHub Pages 網址：[Traefik Route API Swagger](https://obsidiandrake.github.io/Traefik-API/)。
+
+此頁為靜態文件，提供端點、參數、JSON 範例與 OpenAPI 下載；不會連線到你的內網服務。實際呼叫 API 請使用執行中服務的 `http://127.0.0.1:8000/docs`，在 Authorize 輸入 API token。
+
+首次發布需到 repository 的 **Settings → Pages → Build and deployment → Source** 選擇 **GitHub Actions**。之後 main 分支的程式、依賴或文件變更會觸發 `Publish Swagger documentation` workflow，重新產生規格並發布；也可在 Actions 手動執行。若首次 workflow 因尚未啟用 Pages 失敗，啟用後重新執行該 workflow 即可。
+
+本機重新產生規格：
+
+```bash
+venv/bin/python scripts/export_openapi.py
+venv/bin/python -m http.server 9000 --directory docs
+```
+
+開啟 `http://127.0.0.1:9000/`。匯出流程使用獨立設定，不讀取 `.env`、不掃描正式路由目錄，也不連線到 Traefik。Swagger UI 靜態資源使用固定版本的 jsDelivr CDN，需要瀏覽器能連線到該 CDN。
+
 ## 本機啟動
 
 Makefile 僅用來產生本機單一執行檔，沿用參考專案的 venv → 安裝依賴 → PyInstaller 流程：
