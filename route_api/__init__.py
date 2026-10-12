@@ -1,0 +1,1 @@
+"""Traefik route registration service."""
