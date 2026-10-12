@@ -248,3 +248,7 @@ venv/bin/python scripts/smoke_traefik.py --traefik /home/stan/Infra/traefik/trae
 脚本啟動隔離的 Traefik 與兩個測試 HTTP server，使用隨機 loopback ports 和臨時目錄，驗證建立、StripPrefix、路徑邊界、拒絕在線接管、離線接管及刪除的自動載入，全程不重啟 Traefik。API 透過 in-process ASGI 呼叫；不使用正式 config 或既有 Traefik 程序。
 
 此次開發環境禁止網路 socket，因此實際 Traefik reload 與主機間連線仍須在部署主機執行上述驗證。
+
+## License
+
+本專案採用 [MIT License](LICENSE)。Copyright (c) 2026 ObsidianDrake。
