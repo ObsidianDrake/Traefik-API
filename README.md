@@ -50,11 +50,13 @@ venv/bin/python -m pip install -r requirements-dev.txt
 cp .env.example .env
 ```
 
-編輯 `.env`，填入至少 24 字元的隨機 `API_TOKEN`，並設定允許的 upstream：
+編輯 `.env`，在 `API_TOKEN` 填入自訂密碼（無最低長度限制，但不可空白），並設定允許的 upstream：
 
-```bash
-venv/bin/python -c 'import secrets; print(secrets.token_urlsafe(32))'
+```dotenv
+API_TOKEN=mypassword
 ```
+
+呼叫方式維持 `Authorization: Bearer mypassword`；Swagger 的 Authorize 欄位直接輸入密碼。
 
 在 `.env` 所在工作目錄直接啟動：
 
@@ -171,7 +173,7 @@ curl -X PUT http://127.0.0.1:8000/v1/routes/my-app \
 
 | 環境變數 | 預設 | 說明 |
 | --- | --- | --- |
-| `API_TOKEN` | 必填 | 至少 24 字元；更換後重啟 API |
+| `API_TOKEN` | 必填 | 自訂密碼，無最低長度限制、不可空白；更換後重啟 API |
 | `TRAEFIK_CONFIG_DIR` | `./data/config` | API 寫入目錄 |
 | `TRAEFIK_CONFIG_FORMAT` | `yaml` | 新建路由輸出格式：`yaml` → `{name}.yml`，`toml` → `{name}.toml` |
 | `TRAEFIK_ENTRYPOINT` | `web` | 必須存在於 Traefik 靜態設定 |

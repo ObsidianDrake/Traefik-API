@@ -29,4 +29,4 @@ Git history is unavailable in this checkout, so existing commit conventions cann
 
 ## Security & Configuration
 
-Copy `.env.example` to `.env`, configure a random `API_TOKEN` of at least 24 characters and explicit upstream allowlists, then start the application. It automatically reads `.env` from the current working directory; the CLI also accepts `--env-file PATH`. Existing environment variables take precedence; shell commands and variable expansion are not evaluated. Never commit tokens or generated route data. Preserve single-worker operation, atomic writes, and protection of manually managed Traefik files.
+Copy `.env.example` to `.env`, configure a non-blank shared password in `API_TOKEN` (no minimum length) and explicit upstream allowlists, then start the application. It automatically reads `.env` from the current working directory; the CLI also accepts `--env-file PATH`. Existing environment variables take precedence; shell commands and variable expansion are not evaluated. Never commit tokens or generated route data. Preserve single-worker operation, atomic writes, and protection of manually managed Traefik files.

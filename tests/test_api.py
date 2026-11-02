@@ -154,6 +154,19 @@ async def test_auth_size_limit_ids_and_openapi(settings):
         spec = (await client.get('/openapi.json')).json()
         assert 'security' in spec['paths']['/v1/routes/{name}']['put']
 
+
+@pytest.mark.parametrize('password', ['p', 'mypassword'])
+async def test_short_bearer_password_authentication(settings, password):
+    settings.token = Settings(config_dir=settings.config_dir, token=password).token
+    async with client_for(settings) as client:
+        response = await client.post('/v1/routes/preview', json=BODY,
+                                     headers={'Authorization': 'Bearer ' + password})
+        assert response.status_code == 200
+        for authorization in ['', 'Bearer wrong', 'Basic bXlwYXNzd29yZA==']:
+            response = await client.post('/v1/routes/preview', json=BODY,
+                                         headers={'Authorization': authorization})
+            assert response.status_code == 401
+
 @pytest.mark.parametrize('suffix,content', [('yml', 'http:\n  routers:\n    manual:\n      rule: "PathPrefix(`/app`)"\n'), ('toml', '[http.routers.manual]\nrule = "PathPrefix(`/app`)"\n')])
 async def test_manual_files_protected(settings, suffix, content):
     file = settings.config_dir / f'manual.{suffix}'

@@ -93,9 +93,23 @@ def test_cli_default_and_explicit_env_file(tmp_path):
     assert "cannot read env file" in result.stderr
 
 
+@pytest.mark.parametrize("password", ["p", "mypassword", "內部密碼"])
+def test_short_password_is_accepted(tmp_path, password):
+    (tmp_path / ".env").write_text(f"API_TOKEN={password}\n", encoding="utf-8")
+    assert Settings.from_env().token.get_secret_value() == password
+    result = subprocess.run([sys.executable, str(CLI), "--check-config"], capture_output=True, text=True)
+    assert result.returncode == 0
+
+
+@pytest.mark.parametrize("password", ["", "   ", "\t"])
+def test_blank_password_is_rejected(password):
+    with pytest.raises(ValidationError):
+        Settings(config_dir=Path("unused"), token=password)
+
+
 def test_invalid_file_token_is_not_echoed(tmp_path):
-    secret = "short-secret"
-    (tmp_path / ".env").write_text(f"API_TOKEN={secret}\n")
+    secret = "private-invalid-secret"
+    (tmp_path / ".env").write_text(f"API_TOKEN={secret}\nPROBE_ATTEMPTS=0\n")
     result = subprocess.run([sys.executable, str(CLI), "--check-config"], capture_output=True, text=True)
     assert result.returncode == 2
     assert secret not in result.stdout + result.stderr

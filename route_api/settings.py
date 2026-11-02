@@ -25,8 +25,8 @@ class Settings(BaseModel):
     @field_validator("token")
     @classmethod
     def valid_token(cls, value):
-        if len(value.get_secret_value()) < 24:
-            raise ValueError("API_TOKEN must be at least 24 characters")
+        if not value.get_secret_value().strip():
+            raise ValueError("API_TOKEN must not be blank")
         return value
 
     @field_validator("traefik_api_url")
